@@ -1,0 +1,9 @@
+---
+# defaults/main.yml for wakeonlan
+
+# wtd_wakeonlan_mac: ""
+wtd_wakeonlan_broadcast: "255.255.255.0"
+wtd_wakeonlan_delegation_host: "localhost"
+wtd_wakeonlan_port: "7"
+
+wtd_wakeonlan_wait_for_connection_timeout: "600"

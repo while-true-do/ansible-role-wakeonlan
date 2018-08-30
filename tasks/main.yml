@@ -1,0 +1,37 @@
+---
+# tasks/main.yml for wakeonlan
+
+- name: Set facts
+  set_fact:
+    wtd_wakeonlan_host: "{{ ansible_host }}"
+
+- name: Check if host is online
+  command: "ping -c1 {{ wtd_wakeonlan_host }}"
+  delegate_to: "{{ wtd_wakeonlan_delegation_host }}"
+  register: wtd_wakeonlan_host_online
+  ignore_errors: true
+  changed_when: wtd_wakeonlan_host_online.rc == 1
+  failed_when: wtd_wakeonlan_host_online.rc != 1 and
+               wtd_wakeonlan_host_online.rc != 0
+
+- name: Send magic packet
+  wakeonlan:
+    mac: "{{ wtd_wakeonlan_mac }}"
+    broadcast: "{{ wtd_wakeonlan_broadcast }}"
+    port: "{{ wtd_wakeonlan_port }}"
+  delegate_to: "{{ wtd_wakeonlan_delegation_host }}"
+  register: wtd_wakeonlan_magic_packet_send
+  become: yes
+  when: wtd_wakeonlan_host_online.changed
+  tags:
+    - skip_ansible_lint
+
+- name: Wait for host to be available
+  wait_for_connection:
+    timeout: "{{ wtd_wakeonlan_wait_for_connection_timeout }}"
+  when: wtd_wakeonlan_magic_packet_send.changed
+  tags:
+    - skip_ansible_lint
+
+- name: Gather Facts
+  setup:
